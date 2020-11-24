@@ -2,6 +2,7 @@ public class TestMain
 {
     public static void main(String[] args)
     {
-        System.out.println("Start");
+        FileCollector fileCollector = new FileCollector();
+        fileCollector.getFiles();
     }
 }
