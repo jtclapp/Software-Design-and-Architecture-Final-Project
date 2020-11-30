@@ -36,42 +36,37 @@ public class FileCollector
             filenames[i] = file.getName();
         }
     }
-    public void printNumberOfLines()
+    public void printNumberOfLines(int i)
     {
-        getFileNames();
-        for(int i = 0; i < filenames.length; i++)
-        {
             System.out.println(filenames[i] + " has " + numOfLines[i] + " lines.");
-        }
     }
-    public void printNumberOfCharacters()
+    public void printNumberOfCharacters(int i)
     {
-        getFileNames();
-        for(int i = 0; i < filenames.length; i++)
-        {
             System.out.println(filenames[i] + " has " + numOfCharacters[i] + " characters.");
-        }
     }
-    public void printUniqueWords() throws IOException {
-        getFileNames();
-        for (int i = 0; i < filenames.length; i++) {
-            System.out.print("Unique words in " + filenames[i] + " are: ");
+    public void printNumberOfWords(int i)
+    {
+        System.out.println(filenames[i] + " has " + numOfWords[i] + " words.");
+    }
+    public void printUniqueWords(int i) throws IOException {
+            System.out.print("\n" + "Unique words in " + filenames[i] + " are: ");
             for(int j = 0; j < words.size(); j++)
             {
                 if(numOfUniqueWords[i].get(words.get(j)) == Integer.valueOf(1))
                 {
-                    System.out.print(words.get(j) + " ");
+                        System.out.println(words.get(j) + " ");
                 }
             }
-            System.out.println();
-        }
     }
-    public void printNumberOfWords()
-    {
+    public void printResults() throws IOException {
         getFileNames();
         for(int i = 0; i < filenames.length; i++)
         {
-            System.out.println(filenames[i] + " has " + numOfWords[i] + " words.");
+                    printNumberOfLines(i);
+                    printNumberOfCharacters(i);
+                    printNumberOfWords(i);
+                    printUniqueWords(i);
+                    System.out.println();
         }
     }
     public void getNumberOfLines() {
@@ -145,7 +140,7 @@ public class FileCollector
                 @Override
                 public Void call() throws Exception {
                     String file = Files.readString(Path.of(files[finalI]));
-                    String[] words = file.split("\n");
+                    String[] words = file.split(" ");
                     numOfWords[finalI] = words.length;
                     return null;
                 }
@@ -169,6 +164,7 @@ public class FileCollector
         numOfUniqueWords = new HashMap[files.length];
         words = new ArrayList<>();
         final List<Callable<Void>> partitions = new ArrayList<>();
+
         for(int i = 0; i < files.length; i++)
         {
             int finalI = i;
@@ -178,11 +174,17 @@ public class FileCollector
                     HashMap<String, Integer> map = new HashMap<>();
                     List<String> holder = new ArrayList<>();
                     String file = Files.readString(Path.of(files[finalI]));
-                    String[] folder = file.split(" ");
+                    String[] folder = file.split("\n");
                     for(int j = 0; j < folder.length; j++)
                     {
-                        words.add(folder[j]);
-                        holder.add(folder[j]);
+                        String[] wordsfromfile = folder[j].split(" ");
+                        for(int k = 0; k < wordsfromfile.length; k++)
+                        {
+                            if(wordsfromfile[k].isBlank() == false) {
+                                words.add(wordsfromfile[k]);
+                                holder.add(wordsfromfile[k]);
+                            }
+                        }
                     }
                     for (int i = 0; i < holder.size(); i++) {
                         if (map.get(holder.get(i)) == null) {

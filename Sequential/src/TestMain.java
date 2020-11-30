@@ -6,13 +6,10 @@ public class TestMain
         FileCollector fileCollector = new FileCollector();
         fileCollector.getFiles();
         fileCollector.getNumberOfLines();
-        fileCollector.printNumberOfLines();
         fileCollector.getNumberOfCharacters();
-        fileCollector.printNumberOfCharacters();
         fileCollector.getNumberOfWords();
-        fileCollector.printNumberOfWords();
         fileCollector.getNumberOfUniqueWords();
-        fileCollector.printUniqueWords();
+        fileCollector.printResults();
 
     }
 }
