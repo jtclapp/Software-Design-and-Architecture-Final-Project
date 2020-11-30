@@ -1,21 +1,19 @@
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.net.URL;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class FileCollector
 {
     String[] files;
     String[] filenames;
+    String[] words;
     int[] numOfLines;
     int[] numOfWords;
     int[] numOfCharacters;
+    HashMap<String,Integer>[] numOfUniqueWords;
 
     Scanner scanner;
     final int numberOfCores = Runtime.getRuntime().availableProcessors();
@@ -52,6 +50,17 @@ public class FileCollector
         for(int i = 0; i < filenames.length; i++)
         {
             System.out.println(filenames[i] + " has " + numOfCharacters[i] + " characters.");
+        }
+    }
+    public void printUniqueWords() throws IOException {
+        getFileNames();
+        for (int i = 0; i < filenames.length; i++) {
+            System.out.println("Unique words in " + filenames[i] + " are: ");
+        for(int j = 0; j <= words.length; j++)
+                if(numOfUniqueWords[i].get(words[j]) == 1)
+                {
+                    System.out.println(words[j]);
+                }
         }
     }
     public void printNumberOfWords()
@@ -124,6 +133,74 @@ public class FileCollector
     }
     public void getNumberOfWords()
     {
+        numOfWords = new int[files.length];
+        final List<Callable<Void>> partitions = new ArrayList<>();
+        for(int i = 0; i < files.length; i++)
+        {
+            int finalI = i;
+            partitions.add(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    String file = Files.readString(Path.of(files[finalI]));
+                    String[] words = file.split(" ");
+                    numOfWords[finalI] = words.length;
+                    return null;
+                }
+            });
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
+        final List<Future<Void>> results;
+        try {
+            results = executorService.invokeAll(partitions,5000, TimeUnit.SECONDS);
+            for(int i = 0; i < results.size(); i++)
+            {
+                results.get(i);
+            }
 
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    public void getNumberOfUniqueWords()
+    {
+        numOfUniqueWords = new HashMap[files.length];
+        final List<Callable<Void>> partitions = new ArrayList<>();
+        for(int i = 0; i < files.length; i++)
+        {
+            int finalI = i;
+            partitions.add(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    String file = Files.readString(Path.of(files[finalI]));
+                    words = file.split(" ");
+                    for(int i = 0; i < words.length; i++)
+                    {
+                        numOfUniqueWords[finalI].put(words[i],numOfUniqueWords[finalI].get(words[i]));
+//                        Integer count = numOfUniqueWords[finalI].get(words[i]);
+//
+//                        if(count == null)
+//                        {
+//                            numOfUniqueWords[finalI].put(words[i], 1);
+//                        }
+//                        else {
+//                            numOfUniqueWords[finalI].put(words[i],count + 1);
+//                        }
+                    }
+                    return null;
+                }
+            });
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
+        final List<Future<Void>> results;
+        try {
+            results = executorService.invokeAll(partitions,5000, TimeUnit.SECONDS);
+            for(int i = 0; i < results.size(); i++)
+            {
+                results.get(i);
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
