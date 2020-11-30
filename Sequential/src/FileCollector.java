@@ -9,11 +9,11 @@ public class FileCollector
 {
     String[] files;
     String[] filenames;
-    String[] words;
+    List<String> words;
     int[] numOfLines;
     int[] numOfWords;
     int[] numOfCharacters;
-    HashMap<String,Integer>[] numOfUniqueWords;
+    HashMap[] numOfUniqueWords;
 
     Scanner scanner;
     final int numberOfCores = Runtime.getRuntime().availableProcessors();
@@ -55,12 +55,15 @@ public class FileCollector
     public void printUniqueWords() throws IOException {
         getFileNames();
         for (int i = 0; i < filenames.length; i++) {
-            System.out.println("Unique words in " + filenames[i] + " are: ");
-        for(int j = 0; j <= words.length; j++)
-                if(numOfUniqueWords[i].get(words[j]) == 1)
+            System.out.print("Unique words in " + filenames[i] + " are: ");
+            for(int j = 0; j < words.size(); j++)
+            {
+                if(numOfUniqueWords[i].get(words.get(j)) == Integer.valueOf(1))
                 {
-                    System.out.println(words[j]);
+                    System.out.print(words.get(j) + " ");
                 }
+            }
+            System.out.println();
         }
     }
     public void printNumberOfWords()
@@ -142,7 +145,7 @@ public class FileCollector
                 @Override
                 public Void call() throws Exception {
                     String file = Files.readString(Path.of(files[finalI]));
-                    String[] words = file.split(" ");
+                    String[] words = file.split("\n");
                     numOfWords[finalI] = words.length;
                     return null;
                 }
@@ -164,6 +167,7 @@ public class FileCollector
     public void getNumberOfUniqueWords()
     {
         numOfUniqueWords = new HashMap[files.length];
+        words = new ArrayList<>();
         final List<Callable<Void>> partitions = new ArrayList<>();
         for(int i = 0; i < files.length; i++)
         {
@@ -171,21 +175,23 @@ public class FileCollector
             partitions.add(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
+                    HashMap<String, Integer> map = new HashMap<>();
+                    List<String> holder = new ArrayList<>();
                     String file = Files.readString(Path.of(files[finalI]));
-                    words = file.split(" ");
-                    for(int i = 0; i < words.length; i++)
+                    String[] folder = file.split(" ");
+                    for(int j = 0; j < folder.length; j++)
                     {
-                        numOfUniqueWords[finalI].put(words[i],numOfUniqueWords[finalI].get(words[i]));
-//                        Integer count = numOfUniqueWords[finalI].get(words[i]);
-//
-//                        if(count == null)
-//                        {
-//                            numOfUniqueWords[finalI].put(words[i], 1);
-//                        }
-//                        else {
-//                            numOfUniqueWords[finalI].put(words[i],count + 1);
-//                        }
+                        words.add(folder[j]);
+                        holder.add(folder[j]);
                     }
+                    for (int i = 0; i < holder.size(); i++) {
+                        if (map.get(holder.get(i)) == null) {
+                            map.put(holder.get(i), 1);
+                        } else {
+                            map.put(holder.get(i), map.get(holder.get(i)) + 1);
+                        }
+                    }
+                    numOfUniqueWords[finalI] = map;
                     return null;
                 }
             });
