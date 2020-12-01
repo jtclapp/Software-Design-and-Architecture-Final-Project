@@ -54,10 +54,11 @@ public class FileCollector
             if(numOfUniqueWords[i] != null) {
                 for (int j = 0; j < words.size(); j++) {
                     if (numOfUniqueWords[i].get(words.get(j)) == Integer.valueOf(1)) {
-                        System.out.println(words.get(j) + " ");
+                        System.out.print(words.get(j) + " ");
                     }
                 }
             }
+            System.out.println();
     }
     public void printResults() throws IOException {
         getFileNames();
@@ -98,18 +99,25 @@ public class FileCollector
             e.printStackTrace();
         }
     }
-    public void getNumberOfCharacters()
-    {
+    public void getNumberOfCharacters() throws FileNotFoundException {
         numOfCharacters = new int[files.length];
         final List<Callable<Void>> partitions = new ArrayList<Callable<Void>>();
         for(int i = 0; i < files.length; i++) {
             int finalI = i;
+            File file = new File(files[finalI]);
+            String s = "";
+            scanner = new Scanner(file);
+            while(scanner.hasNextLine())
+            {
+                s += scanner.nextLine();
+                s += " ";
+            }
+            String finalS = s;
             partitions.add(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    String file = Files.readString(Path.of(files[finalI]));
-                    String[] characters = file.split("");
-                    numOfCharacters[finalI] = characters.length;
+                    String[] folder = finalS.split("");
+                    numOfCharacters[finalI] = folder.length;
                     return null;
                 }
             });
@@ -165,19 +173,21 @@ public class FileCollector
         for(int i = 0; i < files.length; i++)
         {
             int finalI = i;
-            HashMap<String, Integer> map = new HashMap<>();
-            List<String> holder = new ArrayList<>();
             File file = new File(files[finalI]);
             String s = "";
             scanner = new Scanner(file);
             while(scanner.hasNextLine())
             {
-                s += scanner.nextLine();
+                s += scanner.nextLine().replaceAll("[,.?!]"," ");
+                s += " ";
             }
-            String[] folder = s.split(" ");
+            String finalS = s;
             partitions.add(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
+                    HashMap<String, Integer> map = new HashMap<>();
+                    List<String> holder = new ArrayList<>();
+                    String[] folder = finalS.split(" ");
                     for(int k = 0; k < folder.length; k++)
                     {
                         words.add(folder[k]);holder.add(folder[k]);
