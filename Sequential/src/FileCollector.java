@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,18 +50,18 @@ public class FileCollector
         System.out.println(filenames[i] + " has " + numOfWords[i] + " words.");
     }
     public void printUniqueWords(int i) throws IOException {
-            System.out.print("\n" + "Unique words in " + filenames[i] + " are: ");
-            for(int j = 0; j < words.size(); j++)
-            {
-                if(numOfUniqueWords[i].get(words.get(j)) == Integer.valueOf(1))
-                {
+            System.out.println("Unique words in " + filenames[i] + " are: ");
+            if(numOfUniqueWords[i] != null) {
+                for (int j = 0; j < words.size(); j++) {
+                    if (numOfUniqueWords[i].get(words.get(j)) == Integer.valueOf(1)) {
                         System.out.println(words.get(j) + " ");
+                    }
                 }
             }
     }
     public void printResults() throws IOException {
         getFileNames();
-        for(int i = 0; i < filenames.length; i++)
+        for(int i = 0; i < files.length; i++)
         {
                     printNumberOfLines(i);
                     printNumberOfCharacters(i);
@@ -77,12 +78,9 @@ public class FileCollector
             partitions.add(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    File file = new File(files[finalI]);
-                    Scanner reader = new Scanner(file);
-                    while(reader.nextLine().isBlank() == false)
-                    {
-                        numOfLines[finalI]++;
-                    }
+                    String file = Files.readString(Path.of(files[finalI]));
+                    String[] lines = file.split("\n");
+                    numOfLines[finalI] = lines.length;
                     return null;
                 }
             });
@@ -159,8 +157,7 @@ public class FileCollector
             e.printStackTrace();
         }
     }
-    public void getNumberOfUniqueWords()
-    {
+    public void getNumberOfUniqueWords() throws FileNotFoundException {
         numOfUniqueWords = new HashMap[files.length];
         words = new ArrayList<>();
         final List<Callable<Void>> partitions = new ArrayList<>();
@@ -168,29 +165,30 @@ public class FileCollector
         for(int i = 0; i < files.length; i++)
         {
             int finalI = i;
+            HashMap<String, Integer> map = new HashMap<>();
+            List<String> holder = new ArrayList<>();
+            File file = new File(files[finalI]);
+            String s = "";
+            scanner = new Scanner(file);
+            while(scanner.hasNextLine())
+            {
+                s += scanner.nextLine();
+            }
+            String[] folder = s.split(" ");
             partitions.add(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    HashMap<String, Integer> map = new HashMap<>();
-                    List<String> holder = new ArrayList<>();
-                    String file = Files.readString(Path.of(files[finalI]));
-                    String[] folder = file.split("\n");
-                    for(int j = 0; j < folder.length; j++)
+                    for(int k = 0; k < folder.length; k++)
                     {
-                        String[] wordsfromfile = folder[j].split(" ");
-                        for(int k = 0; k < wordsfromfile.length; k++)
-                        {
-                            if(wordsfromfile[k].isBlank() == false) {
-                                words.add(wordsfromfile[k]);
-                                holder.add(wordsfromfile[k]);
-                            }
-                        }
+                        words.add(folder[k]);holder.add(folder[k]);
                     }
-                    for (int i = 0; i < holder.size(); i++) {
-                        if (map.get(holder.get(i)) == null) {
-                            map.put(holder.get(i), 1);
+                    for (int j = 0; j < holder.size(); j++)
+                    {
+                        if (map.get(holder.get(j)) == null)
+                        {
+                            map.put(holder.get(j), 1);
                         } else {
-                            map.put(holder.get(i), map.get(holder.get(i)) + 1);
+                            map.put(holder.get(j), map.get(holder.get(j)) + 1);
                         }
                     }
                     numOfUniqueWords[finalI] = map;
@@ -201,7 +199,7 @@ public class FileCollector
         ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
         final List<Future<Void>> results;
         try {
-            results = executorService.invokeAll(partitions,5000, TimeUnit.SECONDS);
+            results = executorService.invokeAll(partitions,10000, TimeUnit.SECONDS);
             for(int i = 0; i < results.size(); i++)
             {
                 results.get(i);
