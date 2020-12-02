@@ -74,6 +74,7 @@ public class FileCollector
     public void getNumberOfLines() {
         numOfLines = new int[files.length];
         final List<Callable<Void>> partitions = new ArrayList<Callable<Void>>();
+
         for(int i = 0; i < files.length; i++) {
             int finalI = i;
             partitions.add(new Callable<Void>() {
@@ -104,19 +105,11 @@ public class FileCollector
         final List<Callable<Void>> partitions = new ArrayList<Callable<Void>>();
         for(int i = 0; i < files.length; i++) {
             int finalI = i;
-            File file = new File(files[finalI]);
-            String s = "";
-            scanner = new Scanner(file);
-            while(scanner.hasNextLine())
-            {
-                s += scanner.nextLine();
-                s += " ";
-            }
-            String finalS = s;
+            String s = readFile(files[finalI]);
             partitions.add(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    String[] folder = finalS.split("");
+                    String[] folder = s.split("");
                     numOfCharacters[finalI] = folder.length;
                     return null;
                 }
@@ -135,18 +128,19 @@ public class FileCollector
             e.printStackTrace();
         }
     }
-    public void getNumberOfWords()
-    {
+    public void getNumberOfWords() throws FileNotFoundException {
         numOfWords = new int[files.length];
         final List<Callable<Void>> partitions = new ArrayList<>();
+
         for(int i = 0; i < files.length; i++)
         {
             int finalI = i;
-            partitions.add(new Callable<Void>() {
+            String s = readFile(files[finalI]);
+            partitions.add(new Callable<Void>()
+            {
                 @Override
-                public Void call() throws Exception {
-                    String file = Files.readString(Path.of(files[finalI]));
-                    String[] words = file.split(" ");
+                public Void call() throws FileNotFoundException {
+                    String[] words = s.split(" ");
                     numOfWords[finalI] = words.length;
                     return null;
                 }
@@ -187,6 +181,7 @@ public class FileCollector
                 public Void call() throws Exception {
                     HashMap<String, Integer> map = new HashMap<>();
                     List<String> holder = new ArrayList<>();
+
                     String[] folder = finalS.split(" ");
                     for(int k = 0; k < folder.length; k++)
                     {
@@ -218,5 +213,17 @@ public class FileCollector
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+    public String readFile(String directory) throws FileNotFoundException {
+        File file = new File(directory);
+        String s = "";
+        scanner = new Scanner(file);
+        while(scanner.hasNextLine())
+        {
+            s += scanner.nextLine();
+            s += " ";
+        }
+        String finalS = s;
+        return finalS;
     }
 }

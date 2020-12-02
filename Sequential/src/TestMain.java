@@ -15,7 +15,7 @@ public class TestMain
         fileCollector.printResults();
 
         long elapsedTime = System.currentTimeMillis() - startTime;
-        System.out.println("\n" + "Elapsed time to complete: " + elapsedTime);
+        System.out.println("\n" + "Elapsed time to complete: " + elapsedTime + " milliseconds");
 
     }
 }
