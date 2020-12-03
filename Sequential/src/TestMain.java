@@ -8,6 +8,7 @@ public class TestMain
 
         long startTime = System.currentTimeMillis();
 
+        fileCollector.readFiles();
         fileCollector.getNumberOfLines();
         fileCollector.getNumberOfCharacters();
         fileCollector.getNumberOfWords();
@@ -16,6 +17,5 @@ public class TestMain
 
         long elapsedTime = System.currentTimeMillis() - startTime;
         System.out.println("\n" + "Elapsed time to complete: " + elapsedTime + " milliseconds");
-
     }
 }

@@ -3,16 +3,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.*;
 
-public class FileCollector
-{
+public class FileCollector {
     String[] files;
     String[] filenames;
+    String[] content;
     List<String> words;
     int[] numOfLines;
     int[] numOfWords;
@@ -20,37 +17,40 @@ public class FileCollector
     HashMap[] numOfUniqueWords;
     Scanner scanner;
 
-    public void getFiles()
-    {
+    final int numberOfCores = Runtime.getRuntime().availableProcessors();
+    final double blockingCoefficient = 0.9;
+    final int poolSize = (int) (numberOfCores / (1 - blockingCoefficient));
+
+    public void getFiles() {
         scanner = new Scanner(System.in);
         System.out.print("Insert File Paths: ");
         String listOfFiles = scanner.nextLine();
         files = listOfFiles.split(",");
     }
-    public void getFileNames()
-    {
+
+    public void getFileNames() {
         filenames = new String[files.length];
-        for(int i = 0; i < files.length; i++)
-        {
+        for (int i = 0; i < files.length; i++) {
             File file = new File(files[i]);
             filenames[i] = file.getName();
         }
     }
-    public void printNumberOfLines(int i)
-    {
+
+    public void printNumberOfLines(int i) {
         System.out.println(filenames[i] + " has " + numOfLines[i] + " lines.");
     }
-    public void printNumberOfCharacters(int i)
-    {
+
+    public void printNumberOfCharacters(int i) {
         System.out.println(filenames[i] + " has " + numOfCharacters[i] + " characters.");
     }
-    public void printNumberOfWords(int i)
-    {
+
+    public void printNumberOfWords(int i) {
         System.out.println(filenames[i] + " has " + numOfWords[i] + " words.");
     }
+
     public void printUniqueWords(int i) throws IOException {
         System.out.println("Unique words in " + filenames[i] + " are: ");
-        if(numOfUniqueWords[i] != null) {
+        if (numOfUniqueWords[i] != null) {
             for (int j = 0; j < words.size(); j++) {
                 if (numOfUniqueWords[i].get(words.get(j)) == Integer.valueOf(1)) {
                     System.out.print(words.get(j) + " ");
@@ -59,10 +59,10 @@ public class FileCollector
         }
         System.out.println();
     }
+
     public void printResults() throws IOException {
         getFileNames();
-        for(int i = 0; i < files.length; i++)
-        {
+        for (int i = 0; i < files.length; i++) {
             printNumberOfLines(i);
             printNumberOfCharacters(i);
             printNumberOfWords(i);
@@ -70,78 +70,156 @@ public class FileCollector
             System.out.println();
         }
     }
-    public void getNumberOfLines() throws IOException {
+
+    public void getNumberOfLines() {
         numOfLines = new int[files.length];
-        for(int i = 0; i < files.length; i++)
-        {
-                    String file = Files.readString(Path.of(files[i]));
+        final List<Callable<Void>> partitions = new ArrayList<Callable<Void>>();
+
+        for (int i = 0; i < files.length; i++) {
+            int finalI = i;
+            partitions.add(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    String file = Files.readString(Path.of(files[finalI]));
                     String[] lines = file.split("\n");
-                    numOfLines[i] = lines.length;
+                    numOfLines[finalI] = lines.length;
+                    return null;
+                }
+            });
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
+        final List<Future<Void>> results;
+        try {
+            results = executorService.invokeAll(partitions);
+            for (int i = 0; i < results.size(); i++) {
+                results.get(i);
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
-    public void getNumberOfCharacters() throws FileNotFoundException {
+
+    public void getNumberOfCharacters() {
         numOfCharacters = new int[files.length];
-        for(int i = 0; i < files.length; i++)
-        {
-                    String s = readFile(files[i]);
-                    String[] folder = s.split("");
-                    numOfCharacters[i] = folder.length;
+        final List<Callable<Void>> partitions = new ArrayList<Callable<Void>>();
+
+        for (int i = 0; i < files.length; i++) {
+            int finalI = i;
+            partitions.add(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    String[] folder = content[finalI].split("");
+                    numOfCharacters[finalI] = folder.length;
+                    return null;
+                }
+            });
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
+        final List<Future<Void>> results;
+        try {
+            results = executorService.invokeAll(partitions);
+            for (int i = 0; i < results.size(); i++) {
+                results.get(i);
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
-    public void getNumberOfWords() throws FileNotFoundException {
+
+    public void getNumberOfWords() {
         numOfWords = new int[files.length];
-        for(int i = 0; i < files.length; i++)
-        {
-                    String s = readFile(files[i]);
-                    String[] words = s.split(" ");
-                    numOfWords[i] = words.length;
+        final List<Callable<Void>> partitions = new ArrayList<>();
+
+        for (int i = 0; i < files.length; i++) {
+            int finalI = i;
+            partitions.add(new Callable<Void>() {
+                @Override
+                public Void call() throws FileNotFoundException {
+                    String[] words = content[finalI].split(" ");
+                    numOfWords[finalI] = words.length;
+                    return null;
+                }
+            });
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
+        final List<Future<Void>> results;
+        try {
+            results = executorService.invokeAll(partitions);
+            for (int i = 0; i < results.size(); i++) {
+                results.get(i);
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
-    public void getNumberOfUniqueWords() throws FileNotFoundException {
+
+    public void getNumberOfUniqueWords() {
         numOfUniqueWords = new HashMap[files.length];
         words = new ArrayList<>();
+        final List<Callable<Void>> partitions = new ArrayList<>();
 
-        for(int i = 0; i < files.length; i++)
-        {
-            File file = new File(files[i]);
-            String s = "";
-            scanner = new Scanner(file);
-            while(scanner.hasNextLine())
-            {
-                s += scanner.nextLine().replaceAll("[,.?!]"," ");
-                s += " ";
-            }
-            String finalS = s;
+        for (int i = 0; i < files.length; i++) {
+            int finalI = i;
+
+            partitions.add(new Callable<Void>() {
+                @Override
+                public Void call() {
                     HashMap<String, Integer> map = new HashMap<>();
                     List<String> holder = new ArrayList<>();
 
-                    String[] folder = finalS.split(" ");
-                    for(int k = 0; k < folder.length; k++)
-                    {
-                        words.add(folder[k]);holder.add(folder[k]);
+                    String[] folder = content[finalI].replaceAll("[,.?!]"," ").split(" ");
+                    for (int k = 0; k < folder.length; k++) {
+                        words.add(folder[k]);
+                        holder.add(folder[k]);
                     }
-                    for (int j = 0; j < holder.size(); j++)
-                    {
-                        if (map.get(holder.get(j)) == null)
-                        {
+                    for (int j = 0; j < holder.size(); j++) {
+                        if (map.get(holder.get(j)) == null) {
                             map.put(holder.get(j), 1);
                         } else {
                             map.put(holder.get(j), map.get(holder.get(j)) + 1);
                         }
                     }
-                    numOfUniqueWords[i] = map;
+                    numOfUniqueWords[finalI] = map;
+                    return null;
+                }
+            });
+        }
+        ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
+        final List<Future<Void>> results;
+        try {
+            results = executorService.invokeAll(partitions);
+            for (int i = 0; i < results.size(); i++) {
+                results.get(i);
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
-    public String readFile(String directory) throws FileNotFoundException {
-        File file = new File(directory);
-        String s = "";
-        scanner = new Scanner(file);
-        while(scanner.hasNextLine())
-        {
-            s += scanner.nextLine();
-            s += " ";
-        }
-        String finalS = s;
-        return finalS;
+
+    public void readFiles() {
+        content = new String[files.length];
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < files.length; i++) {
+                    File file = new File(files[i]);
+                    String s = "";
+                    try {
+                        scanner = new Scanner(file);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    while (scanner.hasNextLine()) {
+                        s += scanner.nextLine();
+                        s += " ";
+                    }
+                    content[i] = s;
+                }
+            }
+        }).start();
     }
 }

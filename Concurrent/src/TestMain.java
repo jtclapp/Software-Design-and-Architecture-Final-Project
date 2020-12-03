@@ -8,6 +8,7 @@ public class TestMain
 
         long startTime = System.currentTimeMillis();
 
+        fileCollector.readFiles();
         fileCollector.getNumberOfLines();
         fileCollector.getNumberOfCharacters();
         fileCollector.getNumberOfWords();
