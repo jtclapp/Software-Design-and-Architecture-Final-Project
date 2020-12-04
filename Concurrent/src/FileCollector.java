@@ -181,10 +181,7 @@ public class FileCollector {
     }
 
     public void readFiles() {
-        content = new String[files.length];
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+                content = new String[files.length];
                 for (int i = 0; i < files.length; i++) {
                     File file = new File(files[i]);
                     String s = "";
@@ -199,7 +196,5 @@ public class FileCollector {
                     }
                     content[i] = s;
                 }
-            }
-        }).start();
     }
 }
