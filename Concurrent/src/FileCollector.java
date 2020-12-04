@@ -71,7 +71,7 @@ public class FileCollector {
         }
     }
 
-    public void getNumberOfLines() {
+    public void getNumberOfLines() throws InterruptedException {
         numOfLines = new int[files.length];
         final List<Callable<Void>> partitions = new ArrayList<Callable<Void>>();
 
@@ -88,19 +88,14 @@ public class FileCollector {
             });
         }
         ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
-        final List<Future<Void>> results;
-        try {
-            results = executorService.invokeAll(partitions);
-            for (int i = 0; i < results.size(); i++) {
-                results.get(i);
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        final List<Future<Void>> results = executorService.invokeAll(partitions,5000,TimeUnit.SECONDS);
+        for(int e = 0; e < results.size(); e++)
+        {
+            results.get(e);
         }
     }
 
-    public void getNumberOfCharacters() {
+    public void getNumberOfCharacters() throws InterruptedException {
         numOfCharacters = new int[files.length];
         final List<Callable<Void>> partitions = new ArrayList<Callable<Void>>();
 
@@ -116,19 +111,14 @@ public class FileCollector {
             });
         }
         ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
-        final List<Future<Void>> results;
-        try {
-            results = executorService.invokeAll(partitions);
-            for (int i = 0; i < results.size(); i++) {
-                results.get(i);
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        final List<Future<Void>> results = executorService.invokeAll(partitions,5000,TimeUnit.SECONDS);
+        for(int e = 0; e < results.size(); e++)
+        {
+            results.get(e);
         }
     }
 
-    public void getNumberOfWords() {
+    public void getNumberOfWords() throws InterruptedException {
         numOfWords = new int[files.length];
         final List<Callable<Void>> partitions = new ArrayList<>();
 
@@ -144,19 +134,14 @@ public class FileCollector {
             });
         }
         ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
-        final List<Future<Void>> results;
-        try {
-            results = executorService.invokeAll(partitions);
-            for (int i = 0; i < results.size(); i++) {
-                results.get(i);
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        final List<Future<Void>> results = executorService.invokeAll(partitions,5000,TimeUnit.SECONDS);
+        for(int e = 0; e < results.size(); e++)
+        {
+            results.get(e);
         }
     }
 
-    public void getNumberOfUniqueWords() {
+    public void getNumberOfUniqueWords() throws InterruptedException {
         numOfUniqueWords = new HashMap[files.length];
         words = new ArrayList<>();
         final List<Callable<Void>> partitions = new ArrayList<>();
@@ -188,15 +173,10 @@ public class FileCollector {
             });
         }
         ExecutorService executorService = Executors.newFixedThreadPool(poolSize);
-        final List<Future<Void>> results;
-        try {
-            results = executorService.invokeAll(partitions);
-            for (int i = 0; i < results.size(); i++) {
-                results.get(i);
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        final List<Future<Void>> results = executorService.invokeAll(partitions,5000,TimeUnit.SECONDS);
+        for(int e = 0; e < results.size(); e++)
+        {
+            results.get(e);
         }
     }
 

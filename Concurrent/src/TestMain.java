@@ -2,12 +2,11 @@ import java.io.IOException;
 
 public class TestMain
 {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         FileCollector fileCollector = new FileCollector();
         fileCollector.getFiles();
 
         long startTime = System.currentTimeMillis();
-
         fileCollector.readFiles();
         fileCollector.getNumberOfLines();
         fileCollector.getNumberOfCharacters();
