@@ -13,7 +13,7 @@ public class FileCollector
     String[] files;
     String[] filenames;
     String[] content;
-    List<String> words;
+    List<String>[] words;
     int[] numOfLines;
     int[] numOfWords;
     int[] numOfCharacters;
@@ -51,9 +51,9 @@ public class FileCollector
     public void printUniqueWords(int i) throws IOException {
         System.out.println("Unique words in " + filenames[i] + " are: ");
         if(numOfUniqueWords[i] != null) {
-            for (int j = 0; j < words.size(); j++) {
-                if (numOfUniqueWords[i].get(words.get(j)) == Integer.valueOf(1)) {
-                    System.out.print(words.get(j) + " ");
+            for (int j = 0; j < words[i].size(); j++) {
+                if (numOfUniqueWords[i].get(words[i].get(j)) == Integer.valueOf(1)) {
+                    System.out.print(words[i].get(j) + " ");
                 }
             }
         }
@@ -97,18 +97,16 @@ public class FileCollector
     }
     public void getNumberOfUniqueWords() throws FileNotFoundException {
         numOfUniqueWords = new HashMap[files.length];
-        words = new ArrayList<>();
+        words = new List[files.length];
 
         for(int i = 0; i < files.length; i++)
         {
-
             HashMap<String, Integer> map = new HashMap<>();
             List<String> holder = new ArrayList<>();
-
             String[] folder = content[i].replaceAll("[,.?!]"," ").split(" ");
+
             for(int k = 0; k < folder.length; k++)
             {
-                words.add(folder[k]);
                 holder.add(folder[k]);
             }
             for (int j = 0; j < holder.size(); j++)
@@ -120,6 +118,7 @@ public class FileCollector
                     map.put(holder.get(j), map.get(holder.get(j)) + 1);
                 }
             }
+            words[i] = holder;
             numOfUniqueWords[i] = map;
         }
     }
