@@ -11,7 +11,7 @@
 public class FileCollector
 {
     String[] files;
-    String[] filenames;
+    String dir;
     String[] content;
     List<String>[] words;
     int[] numOfLines;
@@ -23,33 +23,26 @@ public class FileCollector
     public void getFiles()
     {
         scanner = new Scanner(System.in);
-        System.out.print("Insert File Paths: ");
+        System.out.print("Enter directory: ");
+        dir = scanner.nextLine();
+        System.out.print("Enter files in a comma separated list: ");
         String listOfFiles = scanner.nextLine();
         files = listOfFiles.split(",");
     }
-    public void getFileNames()
-    {
-        filenames = new String[files.length];
-        for(int i = 0; i < files.length; i++)
-        {
-            File file = new File(files[i]);
-            filenames[i] = file.getName();
-        }
-    }
     public void printNumberOfLines(int i)
     {
-        System.out.println(filenames[i] + " has " + numOfLines[i] + " lines.");
+        System.out.println(files[i] + " has " + numOfLines[i] + " lines.");
     }
     public void printNumberOfCharacters(int i)
     {
-        System.out.println(filenames[i] + " has " + numOfCharacters[i] + " characters.");
+        System.out.println(files[i] + " has " + numOfCharacters[i] + " characters.");
     }
     public void printNumberOfWords(int i)
     {
-        System.out.println(filenames[i] + " has " + numOfWords[i] + " words.");
+        System.out.println(files[i] + " has " + numOfWords[i] + " words.");
     }
     public void printUniqueWords(int i) throws IOException {
-        System.out.println("Unique words in " + filenames[i] + " are: ");
+        System.out.println("Unique words in " + files[i] + " are: ");
         if(numOfUniqueWords[i] != null) {
             for (int j = 0; j < words[i].size(); j++) {
                 if (numOfUniqueWords[i].get(words[i].get(j)) == Integer.valueOf(1)) {
@@ -60,7 +53,6 @@ public class FileCollector
         System.out.println();
     }
     public void printResults() throws IOException {
-        getFileNames();
         for(int i = 0; i < files.length; i++)
         {
             printNumberOfLines(i);
@@ -74,7 +66,7 @@ public class FileCollector
         numOfLines = new int[files.length];
         for(int i = 0; i < files.length; i++)
         {
-            String file = Files.readString(Path.of(files[i]));
+            String file = Files.readString(Path.of(dir + File.separator + files[i]));
             String[] lines = file.split("\n");
             numOfLines[i] = lines.length;
         }
@@ -124,8 +116,14 @@ public class FileCollector
     }
     public void readFiles() {
         content = new String[files.length];
+
         for (int i = 0; i < files.length; i++) {
-            File file = new File(files[i]);
+            File file = new File(dir + File.separator + files[i]);
+            if(file.exists() == false)
+            {
+                System.out.println(files[i] + " doesn't exist");
+                continue;
+            }
             String s = "";
             try {
                 scanner = new Scanner(file);
